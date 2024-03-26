@@ -1,5 +1,5 @@
-
 import sqlite3
+import os
 import arrow
 from application.model.todo_item import ToDoItem
 
@@ -8,6 +8,8 @@ class DatabaseManager:
         self.db_path = db_path
         self.connection = None
         self.cursor = None
+        self.connect()
+        self.create_table()
 
     def connect(self):
         self.connection = sqlite3.connect(self.db_path)
@@ -26,43 +28,57 @@ class DatabaseManager:
         self.connection.commit()
 
     def insert_todo_item(self, todo_item):
-        self.cursor.execute('''
-        INSERT INTO todo_items(id, title, priority, status, due_date)
-        VALUES (?, ?, ?, ?, ?)
-    ''', (todo_item.id, todo_item.title, todo_item.priority, todo_item.status, todo_item.due_date.format('YYYY-MM-DD')))
-        self.connection.commit()
+        try:
+            formatted_due_date = todo_item.due_date.format('YYYY-MM-DD') if todo_item.due_date else None
+            self.cursor.execute('''
+                INSERT INTO todo_items (title, priority, status, due_date)
+                VALUES (?, ?, ?, ?)
+            ''', (todo_item.title, todo_item.priority, todo_item.status, formatted_due_date))
+            self.connection.commit()
+        except Exception as e: # Catch all exceptions
+            print(f"An error occurred: {e}")
 
     def get_todo_item(self, id):
-        self.cursor.execute('''
-        SELECT * FROM todo_items WHERE id = ?
-        ''', (id,))
+        self.cursor.execute('SELECT * FROM todo_items WHERE id = ?', (id,))
         row = self.cursor.fetchone()
         if row is not None:
-            return ToDoItem(row[0], row[1], row[2], row[3], arrow.get(row[4]))
+            return ToDoItem(row[0], row[1], row[2], row[3], arrow.get(row[4]) if row[4] else None)
         else:
             return None
 
     def update_todo_item(self, todo_item):
+        # Fetch the current values from the database
+        current_todo_item = self.get_todo_item(todo_item.id)
+        
+        # Use the current values as defaults if no new value is provided
+        title = todo_item.title if todo_item.title is not None else current_todo_item.title
+        priority = todo_item.priority if todo_item.priority is not None else current_todo_item.priority
+        status = todo_item.status if todo_item.status is not None else current_todo_item.status
+        due_date = todo_item.due_date if todo_item.due_date is not None else current_todo_item.due_date
+
+        # Format the due date
+        formatted_due_date = due_date.format('YYYY-MM-DD') if due_date else None
+
+        # Update the database
         self.cursor.execute('''
             UPDATE todo_items
             SET title = ?, priority = ?, status = ?, due_date = ?
             WHERE id = ?
-        ''', (todo_item.title, todo_item.priority, todo_item.status, todo_item.due_date.format('YYYY-MM-DD'), todo_item.id))
+        ''', (title, priority, status, formatted_due_date, todo_item.id))
         self.connection.commit()
+        
+    # Add the get_last_inserted_id method to the DatabaseManager class to retrieve the last inserted ID from the database after inserting a new ToDoItem. 
+    def get_last_inserted_id(self):
+        return self.cursor.lastrowid
 
     def delete_todo_item(self, id):
-        self.cursor.execute('''
-            DELETE FROM todo_items WHERE id = ?
-        ''', (id,))
+        self.cursor.execute('DELETE FROM todo_items WHERE id = ?', (id,))
         self.connection.commit()
         
     def list_todo_items(self):
         self.cursor.execute('SELECT * FROM todo_items')
         rows = self.cursor.fetchall()
-        return [ToDoItem(row[0], row[1], row[2], row[3], arrow.get(row[4])) for row in rows]
-    
+        return [ToDoItem(row[0], row[1], row[2], row[3], arrow.get(row[4]) if row[4] else None) for row in rows]
 
     def close_connection(self):
         self.connection.close()
-        
-        

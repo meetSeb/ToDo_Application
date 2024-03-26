@@ -1,4 +1,3 @@
-import arrow
 
 class ToDoItem:
     def __init__(self, id, title, priority, status, due_date):
