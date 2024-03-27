@@ -1,7 +1,9 @@
-from PySide6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, QLabel, QListWidget, QListWidgetItem, QWidget, QLineEdit, QPushButton, QSizePolicy, QDateEdit, QDialog
-from PySide6.QtCore import Qt
+import arrow
+from PySide6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, QLabel, QListWidget, QListWidgetItem, QWidget, QLineEdit, QPushButton, QSizePolicy, QDialog, QMessageBox, QComboBox
+from PySide6.QtCore import Qt, QDate
 from application.controller.task_manager import TaskManager
 
+            
 class UserInterface:
     def __init__(self, model, controller):
         self.model = model
@@ -77,9 +79,10 @@ class UserInterface:
         self.in_progress_list_widget.clear()
         self.done_list_widget.clear()
 
-        # Iterate over the list of ToDos
+    # Iterate over the list of ToDos
         for todo in todos:
             item = QListWidgetItem(todo.title)  # create a QListWidgetItem with the title of the ToDo
+            item.setData(Qt.UserRole, todo.id)  # store the id of the ToDoItem in the QListWidgetItem
 
             # Check the status of the ToDo and add it to the corresponding QListWidget
             if todo.status == 'To Do' or todo.status is None:
@@ -89,31 +92,90 @@ class UserInterface:
             elif todo.status == 'Done':
                 self.done_list_widget.addItem(item)
 
+
     def open_todo_window(self, item):
-            # Create a QDialog
-            dialog = QDialog()
-            layout = QVBoxLayout()
-            dialog.setLayout(layout)
+        """ Open a dialog window to display and edit the details of a ToDoItem 
+            Args:
+            item (QListWidgetItem): The item that was double-clicked in the QListWidget"""
+        # Get the id of the ToDoItem from the QListWidgetItem
+        id = item.data(Qt.UserRole)
 
-            # Create QLineEdit widgets for the title, priority, status, and a QDateEdit for the due_date
-            title_input = QLineEdit(item.text())
-            priority_input = QLineEdit()
-            status_input = QLineEdit()
-            due_date_input = QDateEdit()
+        # Get the ToDoItem object from the database
+        todo = self.controller.get_todo_item(id)
+        
+        # Create a QDialog
+        dialog = QDialog()
+        layout = QVBoxLayout()
+        dialog.setLayout(layout)
 
-            # Add the widgets to the layout
-            layout.addWidget(title_input)
-            layout.addWidget(priority_input)
-            layout.addWidget(status_input)
-            layout.addWidget(due_date_input)
+        # Create QLabel and QLineEdit for the title, and set the current title
+        title_label = QLabel("Title")
+        title_input = QLineEdit(todo.title)
+        layout.addWidget(title_label)
+        layout.addWidget(title_input)
 
-            # Connect the accepted signal of the QDialog to a method that updates the ToDo
-            dialog.accepted.connect(lambda: self.update_todo(item, title_input.text(), priority_input.text(), status_input.text(), due_date_input.date()))
+        # Create QLabel and QComboBox for the priority, and set the current priority
+        priority_label = QLabel("Priority")
+        priority_input = QComboBox()
+        priority_input.addItem("")  # For NULL option
+        priority_input.addItem("Low")
+        priority_input.addItem("Medium")
+        priority_input.addItem("High")
 
-            # Show the QDialog
-            dialog.exec()
+        # Set the current priority
+        current_priority_index = priority_input.findText(todo.priority)
+        if current_priority_index >= 0:  # -1 means the text was not found
+            priority_input.setCurrentIndex(current_priority_index)
 
+        layout.addWidget(priority_label)
+        layout.addWidget(priority_input)
 
+        # Create QLabel and QComboBox for the status, and set the current status
+        status_label = QLabel("Status")
+        status_input = QComboBox()
+        status_input.addItem("")  # For NULL option
+        status_input.addItem("To Do")
+        status_input.addItem("In Progress")
+        status_input.addItem("Done")
+
+        # Set the current status
+        current_status_index = status_input.findText(todo.status)
+        if current_status_index >= 0:  # -1 means the text was not found
+            status_input.setCurrentIndex(current_status_index)
+
+        layout.addWidget(status_label)
+        layout.addWidget(status_input)
+
+        # Create QLabel and QLineEdit for the due_date, and set the current due_date
+        due_date_label = QLabel("Due Date")
+        due_date_input = QLineEdit(arrow.get(todo.due_date).format('YYYY/MM/DD') if todo.due_date else "")
+        layout.addWidget(due_date_label)
+        layout.addWidget(due_date_input)
+
+        # Create a QPushButton for the submit action
+        submit_button = QPushButton("Submit")
+        layout.addWidget(submit_button)
+
+        # Connect the clicked signal of the QPushButton to a method that updates the ToDo
+        submit_button.clicked.connect(lambda: self.handle_submit_and_close_dialog(todo.id, title_input.text(), priority_input.currentText(), status_input.currentText(), due_date_input.text(), dialog))
+
+        # Show the QDialog
+        dialog.exec()
+
+    def handle_submit_and_close_dialog(self, todo_id, title, priority, status, due_date_str, dialog):
+        result = self.controller.handle_submit(todo_id, title, priority, status, due_date_str)
+        if result is not True:
+            QMessageBox.critical(None, "Error", result)
+        else:
+            self.update_kanban_board()  # Update the kanban board
+            dialog.accept()
+
+    def update_todo(self, id, title, priority, status, due_date):
+        # Update the ToDo in the database
+        self.controller.update_todo_item(id, title, priority, status, due_date)
+
+        # Update the KanBan Board
+        self.update_kanban_board()
 
     def display_main_window(self):
         self.window.show()
