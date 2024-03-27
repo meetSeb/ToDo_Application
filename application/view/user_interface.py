@@ -1,6 +1,6 @@
 import arrow
 from PySide6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, QLabel, QListWidget, QListWidgetItem, QWidget, QLineEdit, QPushButton, QSizePolicy, QDialog, QMessageBox, QComboBox
-from PySide6.QtCore import Qt, QDate
+from PySide6.QtCore import Qt, Signal
 from application.controller.task_manager import TaskManager
 
             
@@ -10,10 +10,11 @@ class UserInterface:
         self.controller = TaskManager(controller)
         self.app = QApplication([])
         self.window = QMainWindow()
-
-        self.todo_list_widget = QListWidget()
-        self.in_progress_list_widget = QListWidget()
-        self.done_list_widget = QListWidget()
+        
+        self.window.setWindowTitle("Simply Done - Your Simple Task Organizer")
+        self.todo_list_widget = CustomListWidget()
+        self.in_progress_list_widget = CustomListWidget()
+        self.done_list_widget = CustomListWidget()
         
         self.todo_input = QLineEdit("")
         self.todo_input.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
@@ -47,6 +48,12 @@ class UserInterface:
         self.todo_list_widget.itemDoubleClicked.connect(self.open_todo_window)
         self.in_progress_list_widget.itemDoubleClicked.connect(self.open_todo_window)
         self.done_list_widget.itemDoubleClicked.connect(self.open_todo_window)
+        
+        # Connect the itemRightClicked signal of the QListWidgets to the open_delete_dialog method 
+        self.todo_list_widget.itemRightClicked.connect(self.open_delete_dialog)
+        self.in_progress_list_widget.itemRightClicked.connect(self.open_delete_dialog)
+        self.done_list_widget.itemRightClicked.connect(self.open_delete_dialog)
+    
         
     # Add a KanBan board column to the UI
     def create_labeled_widget(self, label_text, widget, input_field=None, button=None):
@@ -169,13 +176,41 @@ class UserInterface:
         else:
             self.update_kanban_board()  # Update the kanban board
             dialog.accept()
+            
+            
+    
+    def open_delete_dialog(self, item):
+        dialog = QDialog()
+        layout = QVBoxLayout()
+        dialog.setLayout(layout)
 
-    def update_todo(self, id, title, priority, status, due_date):
-        # Update the ToDo in the database
-        self.controller.update_todo_item(id, title, priority, status, due_date)
+        question_label = QLabel("Want to delete the ToDo?")
+        confirm_button = QPushButton("Confirm")
 
-        # Update the KanBan Board
+        layout.addWidget(question_label)
+        layout.addWidget(confirm_button)
+
+        confirm_button.clicked.connect(lambda: self.handle_delete_and_close_dialog(dialog, item))
+
+        dialog.exec_()
+
+    def handle_delete_and_close_dialog(self, dialog, item):
+        todo_id = item.data(Qt.UserRole)  # Get the ID of the ToDo from the item
+        self.controller.delete_todo_item(todo_id)
         self.update_kanban_board()
+        dialog.accept()
 
     def display_main_window(self):
         self.window.show()
+
+
+
+class CustomListWidget(QListWidget):
+    itemRightClicked = Signal(QListWidgetItem)
+
+    def mousePressEvent(self, event):
+        super().mousePressEvent(event)
+        if event.button() == Qt.RightButton:
+            item = self.itemAt(event.pos())
+            if item is not None:
+                self.itemRightClicked.emit(item)

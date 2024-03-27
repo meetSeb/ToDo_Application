@@ -6,6 +6,7 @@ from application.model.database_manager import DatabaseManager
 class TaskManager:
     def __init__(self, db_manager):
         self.db_manager = DatabaseManager('/Users/sebastianahlburg/Documents/Studium/Studium Informatik/IU/Module/Projekt Software Engineering/ToDo_Application/todo_list.db') 
+    
     def create_todo_item(self, title, priority=None, status=None, due_date=None):
         if not title:
             raise ValueError("Title cannot be empty")
@@ -29,10 +30,10 @@ class TaskManager:
     def list_todo_items(self):
         return self.db_manager.list_todo_items()
         
-    def search_todo_items(self, keyword):
-        all_todo_items = self.db_manager.list_todo_items()
-        matching_todo_items = [item for item in all_todo_items if keyword.lower() in item.title.lower()]
-        return matching_todo_items
+    # def search_todo_items(self, keyword):
+    #     all_todo_items = self.db_manager.list_todo_items()
+    #     matching_todo_items = [item for item in all_todo_items if keyword.lower() in item.title.lower()]
+    #     return matching_todo_items
     
     
     def handle_submit(self, todo_id, title, priority, status, due_date_str):
