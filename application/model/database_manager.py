@@ -80,5 +80,33 @@ class DatabaseManager:
         rows = self.cursor.fetchall()
         return [ToDoItem(row[0], row[1], row[2], row[3], arrow.get(row[4]) if row[4] else None) for row in rows]
 
+    def get_todo_items_sorted_by(self, field):
+        if field == 'priority':
+            self.cursor.execute('''
+                SELECT * FROM todo_items
+                ORDER BY CASE priority
+                    WHEN 'High' THEN 1
+                    WHEN 'Medium' THEN 2
+                    WHEN 'Low' THEN 3
+                    ELSE 4
+                END
+            ''')
+        else:
+            self.cursor.execute(f"SELECT * FROM todo_items ORDER BY {field}")
+
+        rows = self.cursor.fetchall()
+        todo_items = []
+        for row in rows:
+            id, title, priority, status, due_date = row
+            due_date = arrow.get(due_date) if due_date else None
+            todo_item = ToDoItem(id, title, priority, status, due_date)
+            todo_items.append(todo_item)
+
+        return todo_items
+        
+        
+
+
+
     def close_connection(self):
         self.connection.close()

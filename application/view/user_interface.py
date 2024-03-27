@@ -31,6 +31,10 @@ class UserInterface:
         self.todo_layout.addWidget(self.create_labeled_widget('In Progress', self.in_progress_list_widget))
         self.todo_layout.addWidget(self.create_labeled_widget('Done', self.done_list_widget))
 
+        # Add a button to sort the ToDos
+        self.sort_button = QPushButton("...")
+        self.input_layout.addWidget(self.sort_button)
+
         self.main_layout = QVBoxLayout()
         self.main_layout.addLayout(self.input_layout)
         self.main_layout.addLayout(self.todo_layout)
@@ -53,6 +57,9 @@ class UserInterface:
         self.todo_list_widget.itemRightClicked.connect(self.open_delete_dialog)
         self.in_progress_list_widget.itemRightClicked.connect(self.open_delete_dialog)
         self.done_list_widget.itemRightClicked.connect(self.open_delete_dialog)
+
+        # Connect the clicked signal of the sort_button to the open_sort_dialog method
+        self.sort_button.clicked.connect(self.open_sort_dialog)
     
         
     # Add a KanBan board column to the UI
@@ -77,16 +84,18 @@ class UserInterface:
             self.update_kanban_board()
             self.todo_input.clear()  # clear the input field
     
-    def update_kanban_board(self):
-        # Fetch the current list of ToDos from the database through the controller
-        todos = self.controller.list_todo_items()
+                
+    def update_kanban_board(self, todos=None):
+        # Fetch the current list of ToDos from the database through the controller if not provided
+        if todos is None:
+            todos = self.controller.list_todo_items()
 
         # Clear the current items in the QListWidgets
         self.todo_list_widget.clear()
         self.in_progress_list_widget.clear()
         self.done_list_widget.clear()
 
-    # Iterate over the list of ToDos
+        # Iterate over the list of ToDos
         for todo in todos:
             item = QListWidgetItem(todo.title)  # create a QListWidgetItem with the title of the ToDo
             item.setData(Qt.UserRole, todo.id)  # store the id of the ToDoItem in the QListWidgetItem
@@ -98,6 +107,7 @@ class UserInterface:
                 self.in_progress_list_widget.addItem(item)
             elif todo.status == 'Done':
                 self.done_list_widget.addItem(item)
+
 
 
     def open_todo_window(self, item):
@@ -203,6 +213,36 @@ class UserInterface:
     def display_main_window(self):
         self.window.show()
 
+
+
+    def open_sort_dialog(self):
+        dialog = QDialog()
+        layout = QVBoxLayout()
+        dialog.setLayout(layout)
+
+        sort_label = QLabel("Sort by")
+        layout.addWidget(sort_label)
+
+        sort_combo_box = QComboBox()
+        sort_combo_box.addItem("Due Date")
+        sort_combo_box.addItem("Priority")
+        layout.addWidget(sort_combo_box)
+
+        sort_button = QPushButton("Sort")
+        layout.addWidget(sort_button)
+
+        sort_button.clicked.connect(lambda: (self.sort_todo_items(sort_combo_box.currentText()), dialog.accept()))
+
+        dialog.exec_()
+
+    def sort_todo_items(self, sort_option):
+        sorted_items = []
+        if sort_option == "Due Date":
+            sorted_items = self.controller.sort_todo_items_by_due_date()
+        elif sort_option == "Priority":
+            sorted_items = self.controller.sort_todo_items_by_priority()
+
+        self.update_kanban_board(sorted_items)
 
 
 class CustomListWidget(QListWidget):

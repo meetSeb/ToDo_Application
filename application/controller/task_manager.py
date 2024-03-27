@@ -29,6 +29,12 @@ class TaskManager:
 
     def list_todo_items(self):
         return self.db_manager.list_todo_items()
+    
+    def sort_todo_items_by_due_date(self):
+        return self.db_manager.get_todo_items_sorted_by('due_date')
+
+    def sort_todo_items_by_priority(self):
+        return self.db_manager.get_todo_items_sorted_by('priority')
         
     # def search_todo_items(self, keyword):
     #     all_todo_items = self.db_manager.list_todo_items()
