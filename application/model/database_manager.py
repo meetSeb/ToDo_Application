@@ -105,7 +105,9 @@ class DatabaseManager:
         return todo_items
         
         
-
+    def update_todo_status(self, id, status):
+        self.cursor.execute("UPDATE todo_items SET status = ? WHERE id = ?", (status, id))
+        self.connection.commit()
 
 
     def close_connection(self):

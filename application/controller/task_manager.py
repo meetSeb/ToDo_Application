@@ -3,10 +3,11 @@ from application.model.todo_item import ToDoItem
 from application.model.database_manager import DatabaseManager
 
 
+
 class TaskManager:
     def __init__(self, db_manager):
         self.db_manager = DatabaseManager('/Users/sebastianahlburg/Documents/Studium/Studium Informatik/IU/Module/Projekt Software Engineering/ToDo_Application/todo_list.db') 
-    
+        
     def create_todo_item(self, title, priority=None, status=None, due_date=None):
         if not title:
             raise ValueError("Title cannot be empty")
@@ -67,3 +68,8 @@ class TaskManager:
 
         # Return True to indicate that the update was successful
         return True
+    
+    # Add the update_todo_status method to the TaskManager class to update the status of a ToDoItem in the database in case of drag-and-drop actions in the KanBan board.
+    def update_todo_status(self, id, status):
+        self.db_manager.update_todo_status(id, status)
+        

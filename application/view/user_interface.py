@@ -1,20 +1,26 @@
 import arrow
-from PySide6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, QLabel, QListWidget, QListWidgetItem, QWidget, QLineEdit, QPushButton, QSizePolicy, QDialog, QMessageBox, QComboBox
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, QLabel, QListWidget, QListWidgetItem, QWidget, QLineEdit, QPushButton, QSizePolicy, QDialog, QMessageBox, QComboBox, QAbstractItemView
+from PySide6.QtCore import Qt, QMimeData, Signal
+from PySide6.QtGui import QDrag, QPixmap, QPainter, QCursor, QFontMetrics, QPen, QColor
 from application.controller.task_manager import TaskManager
 
             
 class UserInterface:
     def __init__(self, model, controller):
         self.model = model
-        self.controller = TaskManager(controller)
+        # self.controller = TaskManager(controller)
+        self.controller = TaskManager(self)
         self.app = QApplication([])
         self.window = QMainWindow()
         
         self.window.setWindowTitle("Simply Done - Your Simple Task Organizer")
-        self.todo_list_widget = CustomListWidget()
-        self.in_progress_list_widget = CustomListWidget()
-        self.done_list_widget = CustomListWidget()
+        # self.todo_list_widget = CustomListWidget()
+        # self.in_progress_list_widget = CustomListWidget()
+        # self.done_list_widget = CustomListWidget()
+        
+        self.todo_list_widget = CustomListWidget(self, status='To Do')
+        self.in_progress_list_widget = CustomListWidget(self, status='In Progress')
+        self.done_list_widget = CustomListWidget(self, status='Done')
         
         self.todo_input = QLineEdit("")
         self.todo_input.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
@@ -213,8 +219,6 @@ class UserInterface:
     def display_main_window(self):
         self.window.show()
 
-
-
     def open_sort_dialog(self):
         dialog = QDialog()
         layout = QVBoxLayout()
@@ -248,9 +252,68 @@ class UserInterface:
 class CustomListWidget(QListWidget):
     itemRightClicked = Signal(QListWidgetItem)
 
+    def __init__(self, UserInterface, status=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.status = status
+        self.UserInterface = UserInterface
+        self.controller = TaskManager(self)
+        self.setDragDropMode(QAbstractItemView.InternalMove)
+    
+    def startDrag(self, actions):
+        drag = QDrag(self)
+        
+        mimeData = QMimeData()
+        mimeData.setText(str(self.currentItem().data(Qt.UserRole)))  # Store the id of the item
+        
+        drag.setMimeData(mimeData)
+
+        # Calculate the size of the text
+        fontMetrics = QFontMetrics(self.currentItem().font())
+        textSize = fontMetrics.size(0, self.currentItem().text())
+
+        pixmap = QPixmap(textSize.width(), textSize.height())
+        pixmap.fill(Qt.transparent)  # Fill the pixmap with a transparent color
+
+        painter = QPainter(pixmap)
+
+        # Set the color of the text to red
+        textColor = QColor('green')
+
+        painter.setPen(QPen(textColor))  # Set the color of the text
+        painter.drawPixmap(pixmap.rect(), self.currentItem().icon().pixmap(textSize))
+        painter.drawText(pixmap.rect(), Qt.AlignCenter, self.currentItem().text())
+        painter.end()
+
+        drag.setPixmap(pixmap)
+        drag.setHotSpot(self.mapFromGlobal(QCursor.pos()) - self.visualItemRect(self.currentItem()).topLeft())
+
+        drag.exec_(actions)
+
+    def mimeData(self, items):
+        mimeData = QMimeData()
+        id = self.currentItem().data(Qt.UserRole)
+        mimeData.setText(str(id))
+        return mimeData
+
+    def dragEnterEvent(self, event):
+        if event.mimeData().hasText():
+            event.acceptProposedAction()
+
+    def dragMoveEvent(self, event):
+        if event.mimeData().hasText():
+            event.acceptProposedAction()
+
+    def dropEvent(self, event):
+        id = int(event.mimeData().text())
+        if self.status is not None:  # Only update the status if it's not None
+            self.controller.update_todo_status(id, self.status)
+            self.UserInterface.update_kanban_board()  # Refresh the Kanban board
+        event.acceptProposedAction()
+
     def mousePressEvent(self, event):
         super().mousePressEvent(event)
         if event.button() == Qt.RightButton:
             item = self.itemAt(event.pos())
             if item is not None:
                 self.itemRightClicked.emit(item)
+
