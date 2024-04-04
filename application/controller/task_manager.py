@@ -1,6 +1,6 @@
 import arrow
 from application.model.todo_item import ToDoItem
-from application.model.database_manager import DatabaseManager
+from application.model.database_manager import DatabaseManager, DatabaseError
 
 
 
@@ -24,30 +24,49 @@ class TaskManager:
                 Returns:
                     ToDoItem: The created ToDoItem object.
                     Raises:
-                        ValueError: If the title is empty."""
+                        ValueError: If the title is empty.
+                        DatabaseError: If an error occurs while creating the ToDoItem."""
         if not title:
             raise ValueError("Title cannot be empty")
         todo_item = ToDoItem(None, title, priority, status, due_date)
-        self.db_manager.insert_todo_item(todo_item)
-        todo_item.id = self.db_manager.get_last_inserted_id()  # Retrieve the ID from the database and set it on the object 
+        try:
+            self.db_manager.insert_todo_item(todo_item)
+            todo_item.id = self.db_manager.get_last_inserted_id()  # Retrieve the ID from the database and set it on the object 
+        except Exception as e:
+            raise DatabaseError("An error occurred while creating the ToDo item.", original_exception=e, operation="INSERT") from e
         return todo_item
 
     def get_todo_item(self, id):
-        """ This method retrieves a ToDoItem from the database based on its ID. It returns the ToDoItem object if found, otherwise raises a ValueError."""
-        
-        # Check if the ID is valid
-        todo_item = self.db_manager.get_todo_item(id)
-        if todo_item is None:
-            raise ValueError(f"No ToDoItem found with id {id}")
-        return todo_item
+        """ This method retrieves a ToDoItem from the database based on its ID. It returns the ToDoItem object if found, otherwise raises a ValueError.
+        Args:
+            id (int): The ID of the ToDoItem to retrieve.
+            Returns:
+                ToDoItem: The ToDoItem object with the specified ID.
+            Raises:
+                ValueError: If no ToDoItem is found with the specified ID.
+                DatabaseError: If an error occurs while retrieving the ToDoItem."""
+        try:
+            # Check if the ID is valid
+            todo_item = self.db_manager.get_todo_item(id)
+            if todo_item is None:
+                raise ValueError(f"No ToDoItem found with id {id}")
+            return todo_item
+        except Exception as e:
+            raise DatabaseError("An error occurred while retrieving the ToDo item.", original_exception=e, operation="SELECT") from e
 
-    def update_todo_item(self, id, title=None, priority=None, status=None, due_date=None):
-        """ This method updates an existing ToDoItem in the database. It returns the updated ToDoItem object."""
-        self.db_manager.update_todo_item(ToDoItem(id, title, priority, status, due_date))
+    def update_todo_item(self, id, title, priority, status, due_date):
+        """ This method updates a ToDoItem in the database."""
+        try:
+            self.db_manager.update_todo_item(ToDoItem(id, title, priority, status, due_date))
+        except Exception as e:
+            raise DatabaseError("An error occurred while updating the ToDo item.", original_exception=e, operation="UPDATE") from e
 
     def delete_todo_item(self, id):
         """ This method deletes a ToDoItem from the database based on its ID."""
-        self.db_manager.delete_todo_item(id)
+        try:
+            self.db_manager.delete_todo_item(id)
+        except Exception as e:
+            raise DatabaseError("An error occurred while deleting the ToDo item.", original_exception=e, operation="DELETE") from e # Raise a DatabaseError with additional information about the operation that failed 
 
     def list_todo_items(self):
         """ This method retrieves all ToDoItems from the database and returns a list of ToDoItem objects."""

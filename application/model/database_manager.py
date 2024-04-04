@@ -132,3 +132,21 @@ class DatabaseManager:
     def close_connection(self):
         """ This method closes the database connection."""
         self.connection.close()
+        
+
+class DatabaseError(Exception):
+    """Exception raised for errors in the database.
+
+    Attributes:
+        message -- explanation of the error
+        error_code -- the error code returned by the database operation
+        original_exception -- the original exception that caused the DatabaseError
+        operation -- the database operation that caused the error
+    """
+
+    def __init__(self, message, error_code=None, original_exception=None, operation=None):
+        self.message = message
+        self.error_code = error_code
+        self.original_exception = original_exception
+        self.operation = operation
+        super().__init__(self.message)

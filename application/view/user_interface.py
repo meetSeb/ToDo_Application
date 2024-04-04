@@ -93,14 +93,16 @@ class UserInterface:
         container.setLayout(layout)
         return container
     
-    # Add the add_todo method
     def add_todo(self):
         """ Add a new ToDo item to the database and update the Kanban board."""
         todo_text = self.todo_input.text()
         if todo_text:  # make sure the input field is not empty
-            self.controller.create_todo_item(todo_text)
-            self.update_kanban_board()
-            self.todo_input.clear()  # clear the input field
+            try:
+                self.controller.create_todo_item(todo_text)
+                self.update_kanban_board()
+                self.todo_input.clear()  # clear the input field
+            except Exception as e:
+                QMessageBox.critical(self, "Error", f"Failed to add ToDo item: {str(e)}")
     
                 
     def update_kanban_board(self, todos=None):
