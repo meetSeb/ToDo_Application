@@ -1,10 +1,12 @@
 import sqlite3
-import os
 import arrow
 from application.model.todo_item import ToDoItem
 
 class DatabaseManager:
+    """ This class is responsible for managing the database connection and executing SQL queries."""
+    
     def __init__(self, db_path):
+        """ The constructor initializes the database path and calls the connect and create_table methods."""
         self.db_path = db_path
         self.connection = None
         self.cursor = None
@@ -12,10 +14,13 @@ class DatabaseManager:
         self.create_table()
 
     def connect(self):
+        """ This method establishes a connection to the database and creates a cursor object."""
         self.connection = sqlite3.connect(self.db_path)
         self.cursor = self.connection.cursor()
 
     def create_table(self):
+        """ This method creates the todo_items table if it does not exist."""
+    
         self.cursor.execute('''
             CREATE TABLE IF NOT EXISTS todo_items(
                 id INTEGER PRIMARY KEY,
@@ -28,6 +33,9 @@ class DatabaseManager:
         self.connection.commit()
 
     def insert_todo_item(self, todo_item):
+        """ This method inserts a new todo item into the database."""
+        
+        # Use the format method of the Arrow library to format the due date in the YYYY-MM-DD format
         try:
             formatted_due_date = todo_item.due_date.format('YYYY-MM-DD') if todo_item.due_date else None
             self.cursor.execute('''
@@ -39,14 +47,18 @@ class DatabaseManager:
             print(f"An error occurred: {e}")
 
     def get_todo_item(self, id):
+        """ This method retrieves a todo item from the database based on its ID."""
+        
         self.cursor.execute('SELECT * FROM todo_items WHERE id = ?', (id,))
         row = self.cursor.fetchone()
-        if row is not None:
+        if row is not None: # Check if a row was returned
             return ToDoItem(row[0], row[1], row[2], row[3], arrow.get(row[4]) if row[4] else None)
         else:
             return None
 
     def update_todo_item(self, todo_item):
+        """ This method updates an existing todo item in the database."""
+        
         # Fetch the current values from the database
         current_todo_item = self.get_todo_item(todo_item.id)
         
@@ -67,20 +79,25 @@ class DatabaseManager:
         ''', (title, priority, status, formatted_due_date, todo_item.id))
         self.connection.commit()
         
-    # Add the get_last_inserted_id method to the DatabaseManager class to retrieve the last inserted ID from the database after inserting a new ToDoItem. 
     def get_last_inserted_id(self):
+        """ This method retrieves the ID of the last inserted row in the database."""
         return self.cursor.lastrowid
 
     def delete_todo_item(self, id):
+        """ This method deletes a todo item from the database based on its ID."""
         self.cursor.execute('DELETE FROM todo_items WHERE id = ?', (id,))
         self.connection.commit()
         
     def list_todo_items(self):
+        """ This method retrieves all todo items from the database and returns them as a list of ToDoItem objects."""
         self.cursor.execute('SELECT * FROM todo_items')
         rows = self.cursor.fetchall()
         return [ToDoItem(row[0], row[1], row[2], row[3], arrow.get(row[4]) if row[4] else None) for row in rows]
 
     def get_todo_items_sorted_by(self, field):
+        """ This method retrieves all todo items from the database and returns them as a list of ToDoItem objects sorted by the specified field."""
+        
+        # Sort the todo items based on the specified field
         if field == 'priority':
             self.cursor.execute('''
                 SELECT * FROM todo_items
@@ -94,6 +111,7 @@ class DatabaseManager:
         else:
             self.cursor.execute(f"SELECT * FROM todo_items ORDER BY {field}")
 
+        # Fetch all rows from the result set and create ToDoItem objects from them
         rows = self.cursor.fetchall()
         todo_items = []
         for row in rows:
@@ -106,9 +124,11 @@ class DatabaseManager:
         
         
     def update_todo_status(self, id, status):
+        """ This method updates the status of a todo item in the database."""
         self.cursor.execute("UPDATE todo_items SET status = ? WHERE id = ?", (status, id))
         self.connection.commit()
 
 
     def close_connection(self):
+        """ This method closes the database connection."""
         self.connection.close()

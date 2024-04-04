@@ -5,10 +5,26 @@ from application.model.database_manager import DatabaseManager
 
 
 class TaskManager:
+    """ This class is responsible for managing the ToDoItems in the application. It interacts with the DatabaseManager to perform CRUD operations on the ToDoItems."""
+    
     def __init__(self, db_manager):
+        """ The constructor initializes the DatabaseManager object.
+        Args:
+            db_manager (DatabaseManager): An instance of the DatabaseManager class. """
+            
         self.db_manager = DatabaseManager('/Users/sebastianahlburg/Documents/Studium/Studium Informatik/IU/Module/Projekt Software Engineering/ToDo_Application/todo_list.db') 
         
     def create_todo_item(self, title, priority=None, status=None, due_date=None):
+        """ This method creates a new ToDoItem and inserts it into the database. It returns the created ToDoItem object.
+            Args:
+                title (str): The title of the ToDoItem.
+                priority (str): The priority of the ToDoItem.
+                status (str): The status of the ToDoItem.
+                due_date (str): The due date of the ToDoItem in the format YYYY-MM-DD.
+                Returns:
+                    ToDoItem: The created ToDoItem object.
+                    Raises:
+                        ValueError: If the title is empty."""
         if not title:
             raise ValueError("Title cannot be empty")
         todo_item = ToDoItem(None, title, priority, status, due_date)
@@ -17,33 +33,46 @@ class TaskManager:
         return todo_item
 
     def get_todo_item(self, id):
+        """ This method retrieves a ToDoItem from the database based on its ID. It returns the ToDoItem object if found, otherwise raises a ValueError."""
+        
+        # Check if the ID is valid
         todo_item = self.db_manager.get_todo_item(id)
         if todo_item is None:
             raise ValueError(f"No ToDoItem found with id {id}")
         return todo_item
 
     def update_todo_item(self, id, title=None, priority=None, status=None, due_date=None):
+        """ This method updates an existing ToDoItem in the database. It returns the updated ToDoItem object."""
         self.db_manager.update_todo_item(ToDoItem(id, title, priority, status, due_date))
 
     def delete_todo_item(self, id):
+        """ This method deletes a ToDoItem from the database based on its ID."""
         self.db_manager.delete_todo_item(id)
 
     def list_todo_items(self):
+        """ This method retrieves all ToDoItems from the database and returns a list of ToDoItem objects."""
         return self.db_manager.list_todo_items()
     
     def sort_todo_items_by_due_date(self):
+        """ This method retrieves all ToDoItems from the database and returns a list of ToDoItem objects sorted by due date."""
         return self.db_manager.get_todo_items_sorted_by('due_date')
 
     def sort_todo_items_by_priority(self):
+        """ This method retrieves all ToDoItems from the database and returns a list of ToDoItem objects sorted by priority."""
         return self.db_manager.get_todo_items_sorted_by('priority')
-        
-    # def search_todo_items(self, keyword):
-    #     all_todo_items = self.db_manager.list_todo_items()
-    #     matching_todo_items = [item for item in all_todo_items if keyword.lower() in item.title.lower()]
-    #     return matching_todo_items
     
     
     def handle_submit(self, todo_id, title, priority, status, due_date_str):
+        """ This method handles the submission of the update form and updates the ToDoItem in the database. It returns True if the update was successful, otherwise an error message. 
+        Args: 
+            todo_id (int): The ID of the ToDoItem to update.
+            title (str): The updated title of the ToDoItem.
+            priority (str): The updated priority of the ToDoItem.
+            status (str): The updated status of the ToDoItem.
+            due_date_str (str): The updated due date of the ToDoItem in the format YYYY/MM/DD.
+            Returns:
+                bool or str: True if the update was successful, otherwise an error message."""
+        
         # If the date string is not empty, try to parse it
         if due_date_str:
             try:
@@ -69,7 +98,10 @@ class TaskManager:
         # Return True to indicate that the update was successful
         return True
     
-    # Add the update_todo_status method to the TaskManager class to update the status of a ToDoItem in the database in case of drag-and-drop actions in the KanBan board.
     def update_todo_status(self, id, status):
+        """ This method updates the status of a ToDoItem in the database based on its ID.
+        Args:
+            id (int): The ID of the ToDoItem to update.
+            status (str): The new status of the ToDoItem."""
         self.db_manager.update_todo_status(id, status)
         

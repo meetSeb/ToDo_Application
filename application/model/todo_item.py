@@ -1,5 +1,6 @@
 
 class ToDoItem:
+    """ This class represents a todo item."""
     def __init__(self, id, title, priority, status, due_date):
         self.id = id
         self.title = title
