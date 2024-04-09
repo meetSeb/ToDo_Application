@@ -3,6 +3,13 @@ from application.model.todo_item import ToDoItem
 
 class TestToDoItem(unittest.TestCase):
     def test_todo_item_initialization(self):
+        """ Test that the ToDoItem class is initialized correctly. 
+        The ToDoItem class should have the following attributes:   
+        - id
+        - title
+        - priority
+        - status
+        - due_date"""
         # Create a ToDoItem instance
         todo_item = ToDoItem(1, 'Buy milk', 'High', 'To Do', '2022-01-01')
 
