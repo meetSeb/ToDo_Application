@@ -3,7 +3,8 @@ from application.model.todo_item import ToDoItem
 
 class TestToDoItem(unittest.TestCase):
     def test_todo_item_initialization(self):
-        """ Test that the ToDoItem class is initialized correctly. 
+        """ Test_ID: 1
+        Test that the ToDoItem class is initialized correctly. 
         The ToDoItem class should have the following attributes:   
         - id
         - title

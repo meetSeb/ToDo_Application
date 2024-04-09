@@ -21,7 +21,8 @@ def setup_teardown_application():
 
 class TestUserInterface:
     def test_add_todo(self, mocker):
-        """ Test that the add_todo method calls the create_todo_item method of the TaskManager class.
+        """ Test_ID: 10
+        Test that the add_todo method calls the create_todo_item method of the TaskManager class.
         The method should also clear the todo_input field."""
         # Arrange
         mock_create_todo_item = mocker.patch('application.controller.task_manager.TaskManager.create_todo_item')
@@ -39,7 +40,8 @@ class TestUserInterface:
         user_interface.todo_input.clear.assert_called_once()
 
     def test_create_labeled_widget(self):
-        """ Test that the create_labeled_widget method creates a widget with a QLabel and another widget as children.
+        """ Test_ID: 11
+        Test that the create_labeled_widget method creates a widget with a QLabel and another widget as children.
         The QLabel should have the text 'Label' and the other widget should be the widget passed as an argument.
         The method should return the created widget."""
         # Arrange
@@ -58,7 +60,8 @@ class TestUserInterface:
 
 class TestCustomListWidget:
     def test_custom_list_widget_drag(self):
-        """ Test that the startDrag method of the CustomListWidget class sets the correct MIME data.
+        """ Test_ID: 12
+        Test that the startDrag method of the CustomListWidget class sets the correct MIME data.
         The MIME data should contain the ID of the ToDoItem associated with the selected item.
         The method should return the MIME data."""
         # Arrange
@@ -77,7 +80,8 @@ class TestCustomListWidget:
         assert mime_data.text() == "123"
 
     def test_custom_list_widget_drop(self):
-        """ Test that the dropEvent method of the CustomListWidget class calls the update_todo_status method of the controller with the correct arguments.
+        """ Test_ID: 13
+        Test that the dropEvent method of the CustomListWidget class calls the update_todo_status method of the controller with the correct arguments.
         The method should call the UserInterface's update_kanban_board method.
         The method should update the status of the ToDoItem associated with the dropped item.
         The method should return None."""
@@ -103,7 +107,8 @@ class TestCustomListWidget:
 
 
     def test_custom_list_widget_right_click(self):
-        """ Test that the mousePressEvent method of the CustomListWidget class emits the itemRightClicked signal when the right mouse button is pressed.
+        """ Test_ID: 14
+        Test that the mousePressEvent method of the CustomListWidget class emits the itemRightClicked signal when the right mouse button is pressed.
         The method should emit the signal once."""
         
         # Arrange
