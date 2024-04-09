@@ -39,6 +39,7 @@ class TestTaskManager:
         assert todo_item.priority == 'High'
         assert todo_item.status == 'In Progress'
         assert todo_item.due_date == '2022-01-01'
+        
 
     def test_get_todo_item(self):
         """ Test that a todo item is retrieved correctly based on its ID."""
@@ -55,6 +56,7 @@ class TestTaskManager:
         assert updated_item.priority == 'Low'
         assert updated_item.status == 'Done'
         assert updated_item.due_date.format('YYYY-MM-DD') == '2022-02-02'
+        
 
     def test_delete_todo_item(self):
         """ Test that a todo item is deleted correctly from the database."""
@@ -64,7 +66,8 @@ class TestTaskManager:
         self.task_manager.delete_todo_item(item2.id)
         todo_items = self.task_manager.list_todo_items()
         assert 'Test title 2' not in [item.title for item in todo_items]
-            
+        
+
     def test_delete_all_todo_items(self):
         """ Test that all todo items are deleted correctly from the database."""
         self.task_manager.create_todo_item('Test title 1', 'High', 'In Progress', '2022-01-01')
@@ -73,6 +76,7 @@ class TestTaskManager:
         self.task_manager.delete_all_todo_items()
         todo_items = self.task_manager.list_todo_items()
         assert len(todo_items) == 0
+        
 
     def test_list_todo_items(self):
         """ Test that all todo items are listed correctly from the database."""
