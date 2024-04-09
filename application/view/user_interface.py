@@ -12,7 +12,9 @@ class UserInterface:
         """ Initialize the UserInterface with the provided model and controller."""
         self.model = model
         self.controller = TaskManager(self)
-        self.app = QApplication([])
+        self.app = QApplication.instance()
+        if self.app is None:
+            self.app = QApplication([])
         self.window = QMainWindow()
         
         self.window.setWindowTitle("Simply Done - Your Simple Task Organizer") # Set the window title
@@ -364,7 +366,7 @@ class CustomListWidget(QListWidget):
         drag.setHotSpot(self.mapFromGlobal(QCursor.pos()) - self.visualItemRect(self.currentItem()).topLeft())
 
         # Execute the drag operation
-        drag.exec_(actions)
+        drag.exec(actions)
 
     def mimeData(self, items):
         """ Return the mime data for the drag operation.

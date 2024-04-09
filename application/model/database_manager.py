@@ -88,6 +88,11 @@ class DatabaseManager:
         self.cursor.execute('DELETE FROM todo_items WHERE id = ?', (id,))
         self.connection.commit()
         
+    def delete_all_todo_items(self):
+        """ This method deletes all todo items from the database."""
+        self.cursor.execute('DELETE FROM todo_items')
+        self.connection.commit()
+        
     def list_todo_items(self):
         """ This method retrieves all todo items from the database and returns them as a list of ToDoItem objects."""
         self.cursor.execute('SELECT * FROM todo_items')

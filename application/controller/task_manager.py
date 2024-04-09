@@ -2,8 +2,6 @@ import arrow
 from application.model.todo_item import ToDoItem
 from application.model.database_manager import DatabaseManager, DatabaseError
 
-
-
 class TaskManager:
     """ This class is responsible for managing the ToDoItems in the application. It interacts with the DatabaseManager to perform CRUD operations on the ToDoItems."""
     
@@ -67,6 +65,9 @@ class TaskManager:
             self.db_manager.delete_todo_item(id)
         except Exception as e:
             raise DatabaseError("An error occurred while deleting the ToDo item.", original_exception=e, operation="DELETE") from e # Raise a DatabaseError with additional information about the operation that failed 
+        
+    def delete_all_todo_items(self):
+        self.db_manager.delete_all_todo_items()
 
     def list_todo_items(self):
         """ This method retrieves all ToDoItems from the database and returns a list of ToDoItem objects."""
