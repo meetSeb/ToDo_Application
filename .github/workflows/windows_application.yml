@@ -20,8 +20,8 @@ jobs:
         pip install -r requirements.txt
     - name: Install PyInstaller
       run: pip install pyinstaller
-    - name: List files
-      run: dir ToDo_Application
+    - name: Print working directory
+      run: echo %cd%
     - name: Build application
       run: pyinstaller main.spec
     - name: Upload artifact
