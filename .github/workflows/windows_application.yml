@@ -20,7 +20,7 @@ jobs:
     - name: Install PyInstaller
       run: pip install pyinstaller
     - name: Build application
-      run: pyinstaller --onefile main.py
+      run: pyinstaller ToDo_Application/main.spec
     - name: Upload artifact
       uses: actions/upload-artifact@v2
       with:
