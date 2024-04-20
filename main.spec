@@ -4,7 +4,7 @@
 block_cipher = None
 
 a = Analysis(['main.py'],
-        pathex=['ToDo_Application'],
+        pathex=['.'],
         binaries=[],
         datas=[],
         hiddenimports=['application'],
