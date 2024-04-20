@@ -8,7 +8,8 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - name: Checkout repository
+      uses: actions/checkout@v2
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
@@ -19,6 +20,8 @@ jobs:
         pip install -r requirements.txt
     - name: Install PyInstaller
       run: pip install pyinstaller
+    - name: List files
+      run: dir ToDo_Application
     - name: Build application
       run: pyinstaller ToDo_Application/main.spec
     - name: Upload artifact
