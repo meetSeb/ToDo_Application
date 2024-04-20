@@ -3,7 +3,7 @@
 
 block_cipher = None
 
-a = Analysis(['ToDo_Application/main.py'],
+a = Analysis(['main.py'],
         pathex=['ToDo_Application'],
         binaries=[],
         datas=[],

@@ -23,7 +23,7 @@ jobs:
     - name: List files
       run: dir ToDo_Application
     - name: Build application
-      run: pyinstaller ToDo_Application/main.spec
+      run: pyinstaller main.spec
     - name: Upload artifact
       uses: actions/upload-artifact@v2
       with:
